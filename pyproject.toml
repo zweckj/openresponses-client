@@ -1,6 +1,6 @@
 [project]
 name = "openresponses-client"
-version = "0.0.1a1"
+version = "0.0.1"
 description = "Asynchronous Python client for the Open Responses API specification, built on aiohttp."
 dynamic = ["readme"]
 license = "MIT"
