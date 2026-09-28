@@ -1,0 +1,139 @@
+[project]
+name = "openresponses-client"
+version = "0.0.1a1"
+description = "Asynchronous Python client for the Open Responses API specification, built on aiohttp."
+dynamic = ["readme"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Josef Zweck", email = "josef@zweck.dev" }]
+maintainers = [{ name = "Josef Zweck", email = "josef@zweck.dev" }]
+keywords = ["openresponses", "open responses", "responses api", "llm", "aiohttp", "async", "client"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: AsyncIO",
+    "Framework :: aiohttp",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+requires-python = ">=3.14"
+dependencies = [
+    "aiohttp>=3.13",
+    "mashumaro>=3.20",
+    "yarl>=1.21",
+]
+
+[project.urls]
+Homepage = "https://github.com/zweckj/openresponses-client"
+Repository = "https://github.com/zweckj/openresponses-client"
+Documentation = "https://github.com/zweckj/openresponses-client#readme"
+Specification = "https://www.openresponses.org/specification"
+
+[build-system]
+requires = ["hatchling>=1.26", "hatch-fancy-pypi-readme>=24.1"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+# Strip the YAML front matter, which PyPI would render as text.
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+pattern = "(?s)\\A---\\n.*?\\n---\\n+(.*)"
+
+[tool.hatch.build.targets.wheel]
+packages = ["openresponses_client"]
+
+[tool.hatch.build.targets.sdist]
+include = ["openresponses_client", "tests", "examples", "README.md", "LICENSE"]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+    "ipywidgets>=8.1.9",
+    "jsonschema>=4.26.0",
+    "mypy>=2.3.1",
+    "pytest>=9.1.1",
+    "pytest-aiohttp>=1.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.8",
+    "tqdm>=4.70.1",
+    "types-jsonschema>=4.26.0.20260518",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "ASYNC", # flake8-async
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "D",     # pydocstyle
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "FURB",  # refurb
+    "I",     # isort
+    "PERF",  # perflint
+    "PL",    # pylint
+    "PT",    # flake8-pytest-style
+    "RET",   # flake8-return
+    "RUF",   # ruff-specific rules
+    "S",     # flake8-bandit
+    "SIM",   # flake8-simplify
+    "SLF",   # flake8-self
+    "UP",    # pyupgrade
+    "W",     # pycodestyle warnings
+]
+ignore = [
+    "ASYNC109", # Timeout parameters are part of the public API
+    "D105",    # Magic methods only get a docstring where it adds value
+    "D107",    # __init__ is covered by the class docstring
+    "PLR0913", # Too many arguments
+    "PLR2004", # Magic value used in comparison
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.isort]
+known-first-party = ["openresponses_client"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D103", "S101", "S105", "S106", "SLF001", "PLR0915", "PLR0917", "PLC0415"]
+"examples/**" = ["D103", "T201", "S101"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+enable_error_code = ["explicit-override"]
+warn_unreachable = true
+show_error_codes = true
+files = ["openresponses_client", "tests", "examples"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["openresponses_client"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@overload",
+]
