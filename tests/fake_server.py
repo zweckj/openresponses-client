@@ -262,7 +262,6 @@ class FakeOpenResponsesServer:
         self.requests: list[RecordedRequest] = []
         self.responses_handler: HttpHandler = self.default_responses_handler
         self.compact_handler: HttpHandler = self.default_compact_handler
-        self.models_handler: HttpHandler = self.default_models_handler
         self.ws_handler: WsHandler = self.echo_ws_handler
         self.ws_connections: list[WsConnection] = []
         self.ws_reject_status: int | None = None
@@ -278,7 +277,6 @@ class FakeOpenResponsesServer:
         self.app.router.add_post("/v1/responses", self._handle_responses)
         self.app.router.add_post("/v1/responses/compact", self._handle_compact)
         self.app.router.add_get("/v1/responses", self._handle_ws)
-        self.app.router.add_get("/v1/models", self._handle_models)
 
     @property
     def last_request(self) -> RecordedRequest:
@@ -304,10 +302,6 @@ class FakeOpenResponsesServer:
             schema_errors("CompactResponseMethodPublicBody", body)
         )
         return await self.compact_handler(request, body)
-
-    async def _handle_models(self, request: web.Request) -> web.StreamResponse:
-        await self._record(request)
-        return await self.models_handler(request, {})
 
     async def _handle_ws(self, request: web.Request) -> web.StreamResponse:
         if self.ws_redirect_location and "api-key" not in request.query:
@@ -339,26 +333,6 @@ class FakeOpenResponsesServer:
         if body.get("stream"):
             return await sse_response(request, encode_sse(text_events(["Hel", "lo!"])))
         return web.json_response(make_response(model=body.get("model", "test-model")))
-
-    @staticmethod
-    async def default_models_handler(
-        request: web.Request, body: dict[str, Any]
-    ) -> web.StreamResponse:
-        """Answer with two models."""
-        return web.json_response(
-            {
-                "object": "list",
-                "data": [
-                    {
-                        "id": "test-model",
-                        "object": "model",
-                        "created": 1_764_967_971,
-                        "owned_by": "test",
-                    },
-                    {"id": "other-model", "object": "model", "context_length": 8192},
-                ],
-            }
-        )
 
     @staticmethod
     async def default_compact_handler(

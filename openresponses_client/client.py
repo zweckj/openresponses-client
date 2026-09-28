@@ -29,7 +29,7 @@ from .exceptions import (
     make_status_error,
     redact_url,
 )
-from .models import CompactResponse, ModelInfo, ModelList, OpenResponsesModel, Response
+from .models import CompactResponse, OpenResponsesModel, Response
 from .models.base import PARSE_ERRORS
 from .params import CreateResponseParams, ResponseInput, StreamResponseParams
 from .streaming import ResponseStream
@@ -181,9 +181,7 @@ class OpenResponsesClient:
     ) -> Response:
         """Create a response and wait for it."""
         body = build_body(params, extra_body)
-        data = await self._request_json(
-            "POST", "responses", body, extra_headers, timeout
-        )
+        data = await self._request_json("responses", body, extra_headers, timeout)
         return self._validate(Response, data)
 
     def stream(
@@ -202,7 +200,6 @@ class OpenResponsesClient:
         return ResponseStream(
             partial(
                 self._request,
-                "POST",
                 self._endpoint("responses"),
                 body,
                 headers,
@@ -231,23 +228,12 @@ class OpenResponsesClient:
             "prompt_cache_key": prompt_cache_key,
         }
         data = await self._request_json(
-            "POST",
             "responses/compact",
             build_body(params, extra_body),
             extra_headers,
             timeout,
         )
         return self._validate(CompactResponse, data)
-
-    async def list_models(
-        self,
-        *,
-        extra_headers: Mapping[str, str] | None = None,
-        timeout: Timeout = _UNSET,
-    ) -> list[ModelInfo]:
-        """List the models of the server (`GET /models`, not part of the spec)."""
-        data = await self._request_json("GET", "models", None, extra_headers, timeout)
-        return self._validate(ModelList, data).data
 
     def websocket(
         self,
@@ -306,18 +292,17 @@ class OpenResponsesClient:
 
     async def _request_json(
         self,
-        method: str,
         path: str,
-        body: dict[str, Any] | None,
+        body: dict[str, Any],
         extra_headers: Mapping[str, str] | None,
         timeout: Timeout,
     ) -> Any:
-        """Send a request and decode its JSON body."""
+        """Post a request and decode the JSON response."""
         headers = self._request_headers(
-            extra_headers, accept="application/json", json_body=body is not None
+            extra_headers, accept="application/json", json_body=True
         )
         response = await self._request(
-            method, self._endpoint(path), body, headers, self._request_timeout(timeout)
+            self._endpoint(path), body, headers, self._request_timeout(timeout)
         )
         try:
             raw = await response.read()
@@ -339,23 +324,21 @@ class OpenResponsesClient:
 
     async def _request(
         self,
-        method: str,
         url: URL,
-        body: dict[str, Any] | None,
+        body: dict[str, Any],
         headers: Mapping[str, str],
         timeout: aiohttp.ClientTimeout,
     ) -> aiohttp.ClientResponse:
-        """Send a request with retries and return a successful response."""
-        data = dumps(body).encode() if body is not None else None
+        """Post a request with retries and return a successful response."""
+        data = dumps(body).encode()
         session = self._get_session()
         attempt = 0
         while True:
-            _LOGGER.debug("%s %s (attempt %s)", method, redact_url(url), attempt + 1)
+            _LOGGER.debug("POST %s (attempt %s)", redact_url(url), attempt + 1)
             last_attempt = attempt >= self._max_retries
             delay = _backoff(attempt)
             try:
-                response = await session.request(
-                    method,
+                response = await session.post(
                     url,
                     data=data,
                     headers=headers,

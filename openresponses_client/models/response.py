@@ -24,8 +24,6 @@ __all__ = [
     "InputTokensDetails",
     "JsonObjectResponseFormat",
     "JsonSchemaResponseFormat",
-    "ModelInfo",
-    "ModelList",
     "OutputTokensDetails",
     "ReasoningConfig",
     "Response",
@@ -228,21 +226,3 @@ class CompactResponse(OpenResponsesModel):
         default_factory=list, metadata=field_options(deserialize=list_of(parse_item))
     )
     usage: Usage | None = None
-
-
-@dataclass
-class ModelInfo(OpenResponsesModel):
-    """Model listed by `GET /models`."""
-
-    id: str = ""
-    object: str = "model"
-    created: int | None = None
-    owned_by: str | None = None
-
-
-@dataclass
-class ModelList(OpenResponsesModel):
-    """Models listed by `GET /models`."""
-
-    data: list[ModelInfo]
-    object: str = "list"

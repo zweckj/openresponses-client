@@ -19,7 +19,6 @@ from openresponses_client.models import (
     InputTextContent,
     JsonSchemaResponseFormat,
     Message,
-    ModelInfo,
     OutputTextContent,
     ReasoningItem,
     RefusalContent,
@@ -548,20 +547,6 @@ def test_provider_fields_are_attributes() -> None:
     )
     assert isinstance(event, UnknownEvent)
     assert event.delta == "print(1)"
-
-
-def test_model_info() -> None:
-    model = ModelInfo.from_dict(
-        {"id": "gpt-5-mini", "created": 1.5, "owned_by": None, "status": "succeeded"}
-    )
-
-    assert (model.id, model.object, model.created, model.owned_by) == (
-        "gpt-5-mini",
-        "model",
-        1,
-        None,
-    )
-    assert model.extra == {"status": "succeeded"}
 
 
 @pytest.mark.parametrize(

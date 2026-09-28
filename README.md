@@ -195,22 +195,6 @@ response = await client.create(
 )
 ```
 
-## Listing models
-
-A quick way to check the URL and API key:
-
-```python
-models = await client.list_models(timeout=10)
-print([model.id for model in models])
-```
-
-* A bad key raises `AuthenticationError`.
-* An unreachable server raises `APIConnectionError`.
-
-> [!NOTE]
-> `GET /models` is not part of the spec. Most OpenAI compatible servers provide it, others
-> raise `NotFoundError`.
-
 ## Errors
 
 All exceptions derive from `OpenResponsesError`.

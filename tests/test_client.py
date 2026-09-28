@@ -534,60 +534,6 @@ def test_client_repr_hides_key() -> None:
     assert str(client.base_url) == "https://api.example.com/v1"
 
 
-async def test_list_models(
-    client: OpenResponsesClient, fake_server: FakeOpenResponsesServer
-) -> None:
-    models = await client.list_models(timeout=5)
-
-    assert [model.id for model in models] == ["test-model", "other-model"]
-    assert (models[0].created, models[0].owned_by) == (1_764_967_971, "test")
-    assert models[1].extra == {"context_length": 8192}
-    request = fake_server.last_request
-    assert (request.method, request.path, request.body) == ("GET", "/v1/models", None)
-    assert request.headers["Authorization"] == f"Bearer {API_KEY}"
-    assert "Content-Type" not in request.headers
-
-
-@pytest.mark.parametrize(
-    ("body", "expected"),
-    [
-        ({"data": [{"id": "a"}]}, ["a"]),
-        (["a", "b"], None),
-        ({"models": []}, None),
-        ({"data": ["a"]}, None),
-        ({"data": [{"id": {"not": "a string"}}]}, None),
-    ],
-)
-async def test_list_models_response_shapes(
-    client: OpenResponsesClient,
-    fake_server: FakeOpenResponsesServer,
-    body: Any,
-    expected: list[str] | None,
-) -> None:
-    async def handler(request: web.Request, _: dict[str, Any]) -> web.StreamResponse:
-        return web.json_response(body)
-
-    fake_server.models_handler = handler
-
-    if expected is None:
-        with pytest.raises(APIResponseValidationError):
-            await client.list_models()
-    else:
-        assert [model.id for model in await client.list_models()] == expected
-
-
-async def test_list_models_not_supported(
-    client: OpenResponsesClient, fake_server: FakeOpenResponsesServer
-) -> None:
-    async def handler(request: web.Request, _: dict[str, Any]) -> web.StreamResponse:
-        return web.json_response({"error": {"message": "Not found"}}, status=404)
-
-    fake_server.models_handler = handler
-
-    with pytest.raises(NotFoundError):
-        await client.list_models()
-
-
 async def test_hosted_tool_choice(
     client: OpenResponsesClient, fake_server: FakeOpenResponsesServer
 ) -> None:
