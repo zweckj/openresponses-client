@@ -90,9 +90,14 @@ class FunctionCall(OpenResponsesModel):
     arguments: str = ""
     status: str | None = None
 
-    def parse_arguments(self) -> Any:
+    def parse_arguments(self) -> dict[str, Any]:
         """Decode the JSON arguments; empty arguments give `{}`."""
-        return json.loads(self.arguments.strip() or "{}")
+        match json.loads(self.arguments.strip() or "{}"):
+            case dict() as arguments:
+                return arguments
+        raise ValueError(
+            f"Expected the arguments to be a JSON object, got {self.arguments!r}"
+        )
 
 
 @dataclass

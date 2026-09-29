@@ -148,6 +148,12 @@ def test_function_call_empty_arguments() -> None:
         FunctionCall(name="broken", arguments="{").parse_arguments()
 
 
+@pytest.mark.parametrize("arguments", ["[]", '"text"', "1", "null"])
+def test_function_call_non_object_arguments(arguments: str) -> None:
+    with pytest.raises(ValueError, match="JSON object"):
+        FunctionCall(name="broken", arguments=arguments).parse_arguments()
+
+
 @pytest.mark.parametrize(
     ("role", "part_type"),
     [("assistant", OutputTextContent), ("user", InputTextContent)],
